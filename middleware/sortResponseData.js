@@ -6,6 +6,12 @@ function setup(comparator, should_execute) {
   function middleware(req, res, next) {
     // bail early if req/res don't pass conditions for execution or there's no data to sort
     if (!should_execute(req, res) || _.isEmpty(res.data)) {
+        // We should still sort by confidence, but only if not empty
+        if(!_.isEmpty(res.data)) {
+            res.data.sort(function(a,b) {
+                return a.confidence > b.confidence ? -1 : 1;
+            });
+        }
       return next();
     }
 
