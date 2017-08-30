@@ -278,6 +278,68 @@ module.exports.tests.iso2_conversion = (test, common) => {
 
 };
 
+module.exports.tests.german_compound_streets = (test, common) => {
+    test('a german street with no space (i.e. Ringstr) should be expanded', t => {
+        const controller = proxyquire('../../../controller/libpostal', {
+            'pelias-text-analyzer': {
+                parse: () => ({
+                    street: 'ringstr'
+                })
+            }
+        })(() => true);
+        
+        const req = {
+            clean: {
+                parsed_text: 'ringstr'
+            }
+        };
+        
+        const res = 'ringstraße';
+        
+        controller(req, res, () => {
+            t.deepEquals(req, {
+                clean: {
+                    parsed_text: {
+                        street: 'ringstraße'
+                    }
+                }
+            });
+            t.deepEquals(res, 'ringstraße', 'parsed compound street does not match');
+            t.end();
+        });
+    });
+    
+    test('a german street with space should not be compounded', t => {
+        const controller = proxyquire('../../../controller/libpostal', {
+            'pelias-text-analyzer': {
+                parse: () => ({
+                    street: 'ring str'
+                })
+            }
+        })(() => true);
+        
+        const req = {
+            clean: {
+                parsed_text: 'ring str'
+            }
+        };
+        
+        const res = 'ring straße';
+        
+        controller(req, res, () => {
+            t.deepEquals(req, {
+                clean: {
+                    parsed_text: {
+                        street: 'ring straße'
+                    }
+                }
+            });
+            t.deepEquals(res, 'ring straße', 'parsed german street compounded');
+            t.end();
+        });
+    });
+};
+
 module.exports.all = (tape, common) => {
 
   function test(name, testFunction) {
